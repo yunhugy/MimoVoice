@@ -56,6 +56,14 @@ jobs:
           file "$APP_DIR/MiMoVoice"
           ls -lh "$APP_DIR/MiMoVoice"
 
+      - name: Inject Info.plist permissions
+        run: |
+          APP_DIR="build/Build/Products/Release-iphoneos/MiMoVoice.app"
+          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'MiMoVoice需要访问麦克风以进行录音和实时变声'" "$APP_DIR/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :NSAppleMusicUsageDescription string 'MiMoVoice需要访问媒体库以保存音频文件'" "$APP_DIR/Info.plist"
+          echo "✅ Permissions injected"
+          /usr/libexec/PlistBuddy -c "Print :NSMicrophoneUsageDescription" "$APP_DIR/Info.plist"
+
       - name: Create IPA
         run: |
           APP_DIR="build/Build/Products/Release-iphoneos/MiMoVoice.app"
