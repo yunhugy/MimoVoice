@@ -11,6 +11,16 @@ class RealTimeEngine: ObservableObject {
     
     private var isSetup = false
     
+    // MARK: - 请求麦克风权限
+    func requestMicPermission(completion: @escaping (Bool) -> Void) {
+        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            DispatchQueue.main.async {
+                completion(granted)
+            }
+        }
+    }
+    
+    // MARK: - 启动引擎
     func start() throws {
         if isSetup { stop() }
         
@@ -20,40 +30,49 @@ class RealTimeEngine: ObservableObject {
         
         let engine = AVAudioEngine()
         let pitch = AVAudioUnitTimePitch()
-        let inputNode = engine.inputNode
-        let outputNode = engine.mainMixerNode
         
         engine.attach(pitch)
         
+        let inputNode = engine.inputNode
+        let outputNode = engine.mainMixerNode
         let format = inputNode.outputFormat(forBus: 0)
+        
+        // 验证 format 有效
+        guard format.sampleRate > 0, format.channelCount > 0 else {
+            throw EngineError.invalidAudioFormat
+        }
+        
         engine.connect(inputNode, to: pitch, format: format)
         engine.connect(pitch, to: outputNode, format: format)
         engine.prepare()
         
         try engine.start()
         
+        // 全部成功后才赋值
         audioEngine = engine
         pitchNode = pitch
         isSetup = true
-        
-        DispatchQueue.main.async {
-            self.isActive = true
-            self.setEffect(.none)
-        }
+        isActive = true
     }
     
+    // MARK: - 停止引擎（安全清理）
     func stop() {
-        audioEngine?.stop()
-        audioEngine?.disconnectNodeInput(audioEngine!.inputNode)
+        guard let engine = audioEngine else {
+            // 即使 engine 为 nil，也要重置状态
+            isActive = false
+            isSetup = false
+            return
+        }
+        
+        engine.stop()
+        engine.disconnectNodeInput(engine.inputNode)
         audioEngine = nil
         pitchNode = nil
         isSetup = false
-        
-        DispatchQueue.main.async {
-            self.isActive = false
-        }
+        isActive = false
     }
     
+    // MARK: - 设置效果
     func setEffect(_ effect: RealTimeEffect) {
         effectName = effect.rawValue
         guard let pitch = pitchNode else { return }
@@ -93,5 +112,17 @@ class RealTimeEngine: ObservableObject {
     
     func setRate(_ rate: Float) {
         pitchNode?.rate = rate
+    }
+}
+
+enum EngineError: LocalizedError {
+    case invalidAudioFormat
+    case micPermissionDenied
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidAudioFormat: return "音频格式无效，请检查麦克风"
+        case .micPermissionDenied: return "需要麦克风权限才能实时变声"
+        }
     }
 }

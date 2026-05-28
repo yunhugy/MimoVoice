@@ -117,12 +117,21 @@ struct LiveVoiceView: View {
         if engine.isActive {
             engine.stop()
         } else {
-            do {
-                engine.setEffect(selectedEffect)
-                try engine.start()
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
+            // 先请求麦克风权限
+            engine.requestMicPermission { granted in
+                guard granted else {
+                    errorMessage = "需要麦克风权限才能实时变声，请在系统设置中授权"
+                    showError = true
+                    return
+                }
+                do {
+                    try self.engine.start()
+                    // 启动成功后再设效果
+                    self.engine.setEffect(self.selectedEffect)
+                } catch {
+                    self.errorMessage = error.localizedDescription
+                    self.showError = true
+                }
             }
         }
     }
