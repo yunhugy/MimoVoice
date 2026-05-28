@@ -18,34 +18,50 @@ jobs:
         run: brew install xcodegen
 
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer || \
+          sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+          xcodebuild -version
 
       - name: Generate Xcode Project
-        run: xcodegen generate --spec project.yml
+        run: |
+          xcodegen generate --spec project.yml
+          xcodebuild -project MimoVoice.xcodeproj -list
 
       - name: Build iOS App
         run: |
           xcodebuild \
             -project MimoVoice.xcodeproj \
-            -scheme MimoVoice \
+            -scheme MiMoVoice \
             -configuration Release \
             -sdk iphoneos \
             -arch arm64 \
             -derivedDataPath build \
+            -allowProvisioningUpdates \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGN_ENTITLEMENTS="" \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE="" \
-            | tail -20
+            2>&1 | tail -30
+          
+          echo "=== Build Products ==="
+          find build -name "*.app" -type d 2>/dev/null
 
       - name: Create IPA
         run: |
+          APP_PATH=$(find build -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: .app not found!"
+            find build -type d | head -20
+            exit 1
+          fi
+          echo "Found app at: $APP_PATH"
           mkdir -p Payload
-          cp -r build/Build/Products/Release-iphoneos/MimoVoice.app Payload/
+          cp -r "$APP_PATH" Payload/
           zip -r MimoVoice.ipa Payload
           rm -rf Payload
+          ls -lh MimoVoice.ipa
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
