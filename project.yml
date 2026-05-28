@@ -9,6 +9,7 @@ settings:
   CODE_SIGNING_ALLOWED: NO
   DEVELOPMENT_TEAM: ""
   IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+  GENERATE_INFOPLIST_FILE: NO
 targets:
   MiMoVoice:
     type: application
@@ -20,5 +21,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.mimo.voice
         CODE_SIGNING_ALLOWED: NO
         IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+        INFOPLIST_FILE: MimoVoice/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
     info:
       path: MimoVoice/Info.plist
