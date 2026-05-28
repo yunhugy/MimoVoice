@@ -104,6 +104,9 @@ struct LiveVoiceView: View {
                 }
                 .padding()
             }
+            .onDisappear {
+                engine.stop()
+            }
             .navigationTitle("实时变声")
             .alert("错误", isPresented: $showError) {
                 Button("确定") {}

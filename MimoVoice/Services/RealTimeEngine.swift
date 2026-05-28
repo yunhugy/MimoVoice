@@ -58,14 +58,12 @@ class RealTimeEngine: ObservableObject {
     // MARK: - 停止引擎（安全清理）
     func stop() {
         guard let engine = audioEngine else {
-            // 即使 engine 为 nil，也要重置状态
             isActive = false
             isSetup = false
             return
         }
         
         engine.stop()
-        engine.disconnectNodeInput(engine.inputNode)
         audioEngine = nil
         pitchNode = nil
         isSetup = false

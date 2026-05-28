@@ -1,7 +1,7 @@
 import Foundation
 import AVFoundation
 
-class AudioService: ObservableObject {
+class AudioService: NSObject, ObservableObject, AVAudioPlayerDelegate {
     private var audioRecorder: AVAudioRecorder?
     private var audioPlayer: AVAudioPlayer?
     
@@ -10,6 +10,10 @@ class AudioService: ObservableObject {
     @Published var recordingURL: URL?
     
     private let tempDir = FileManager.default.temporaryDirectory
+    
+    override init() {
+        super.init()
+    }
     
     // MARK: - Recording
     func startRecording() throws {
@@ -51,16 +55,14 @@ class AudioService: ObservableObject {
         try session.setCategory(.playback, mode: .default)
         try session.setActive(true)
         
-        audioPlayer = try AVAudioPlayer(data: data)
-        audioPlayer?.prepareToPlay()
-        audioPlayer?.play()
+        let player = try AVAudioPlayer(data: data)
+        player.delegate = self
+        player.prepareToPlay()
+        player.play()
+        audioPlayer = player
         
         DispatchQueue.main.async {
             self.isPlaying = true
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + (audioPlayer?.duration ?? 0)) {
-            self.isPlaying = false
         }
     }
     
@@ -71,24 +73,31 @@ class AudioService: ObservableObject {
         try session.setCategory(.playback, mode: .default)
         try session.setActive(true)
         
-        audioPlayer = try AVAudioPlayer(contentsOf: url)
-        audioPlayer?.prepareToPlay()
-        audioPlayer?.play()
+        let player = try AVAudioPlayer(contentsOf: url)
+        player.delegate = self
+        player.prepareToPlay()
+        player.play()
+        audioPlayer = player
         
         DispatchQueue.main.async {
             self.isPlaying = true
         }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + (audioPlayer?.duration ?? 0)) {
-            self.isPlaying = false
-        }
     }
     
     func stopPlayback() {
+        audioPlayer?.delegate = nil
         audioPlayer?.stop()
         audioPlayer = nil
         DispatchQueue.main.async {
             self.isPlaying = false
+        }
+    }
+    
+    // MARK: - AVAudioPlayerDelegate
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        DispatchQueue.main.async {
+            self.isPlaying = false
+            self.audioPlayer = nil
         }
     }
     

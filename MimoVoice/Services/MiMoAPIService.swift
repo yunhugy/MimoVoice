@@ -1,15 +1,22 @@
 import Foundation
-import SwiftUI
 
-class MiMoAPIService: ObservableObject {
-    @AppStorage("apiKey") private var storedApiKey = ""
-    @AppStorage("baseURL") private var storedBaseURL = "https://token-plan-sgp.xiaomimimo.com/v1"
-    @AppStorage("whisperKey") private var whisperKey = ""
+class MiMoAPIService {
     
     static let shared = MiMoAPIService()
     
-    private var baseURL: String { storedBaseURL }
-    private var apiKey: String { storedApiKey }
+    private let defaults = UserDefaults.standard
+    
+    private var baseURL: String {
+        defaults.string(forKey: "baseURL") ?? "https://token-plan-sgp.xiaomimimo.com/v1"
+    }
+    
+    private var apiKey: String {
+        defaults.string(forKey: "apiKey") ?? ""
+    }
+    
+    private var whisperKey: String {
+        defaults.string(forKey: "whisperKey") ?? ""
+    }
     
     // MARK: - TTS (Text to Speech)
     func synthesize(text: String, stylePrompt: String, model: String = "mimo-v2.5-tts") async throws -> Data {

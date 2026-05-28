@@ -1,20 +1,5 @@
 import Foundation
 
-enum VoiceMode: String, CaseIterable, Identifiable {
-    case aiRefine = "AI精修"
-    case voiceClone = "声音克隆"
-    case realTime = "实时变声"
-    
-    var id: String { rawValue }
-    var icon: String {
-        switch self {
-        case .aiRefine: return "sparkles"
-        case .voiceClone: return "person.wave.2"
-        case .realTime: return "mic.waves.and.arrow.right"
-        }
-    }
-}
-
 enum AIVoiceStyle: String, CaseIterable, Identifiable {
     case sweet = "甜美少女"
     case gentle = "温柔姐姐"
@@ -71,7 +56,7 @@ enum RealTimeEffect: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .none: return "mic.fill"
-        case .chipmunk: return "squirrel.fill"
+        case .chipmunk: return "hare.fill"
         case .deep: return "bubble.left.and.bubble.right.fill"
         case .robot: return "cpu"
         case .echo: return "dot.radiowaves.left.and.right"
@@ -79,19 +64,5 @@ enum RealTimeEffect: String, CaseIterable, Identifiable {
         case .kid: return "figure.child"
         case .giant: return "arrow.up.to.line"
         }
-    }
-}
-
-struct CloneSample: Identifiable, Codable {
-    let id: UUID
-    let name: String
-    let audioData: Data
-    let createdAt: Date
-    
-    init(name: String, audioData: Data) {
-        self.id = UUID()
-        self.name = name
-        self.audioData = audioData
-        self.createdAt = Date()
     }
 }

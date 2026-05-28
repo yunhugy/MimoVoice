@@ -126,12 +126,26 @@ struct SettingsView: View {
         isTesting = true
         testResult = ""
         
+        guard let url = URL(string: "\(baseURL)/models") else {
+            testResult = "❌ URL 无效"
+            isTesting = false
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        
         do {
-            _ = try await MiMoAPIService.shared.synthesize(
-                text: "测试",
-                stylePrompt: "用普通语气说"
-            )
-            testResult = "✅ 连接成功！API Key 有效"
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResp = response as? HTTPURLResponse {
+                if httpResp.statusCode == 200 {
+                    testResult = "✅ 连接成功！API Key 有效"
+                } else if httpResp.statusCode == 401 {
+                    testResult = "❌ API Key 无效"
+                } else {
+                    testResult = "⚠️ 状态码: \(httpResp.statusCode)"
+                }
+            }
         } catch {
             testResult = "❌ \(error.localizedDescription)"
         }

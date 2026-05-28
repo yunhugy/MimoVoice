@@ -8,10 +8,7 @@ struct AIRefineView: View {
     @State private var isLoading = false
     @State private var resultAudio: Data?
     @State private var errorMessage: String?
-    @State private var showSuccess = false
-    
     @StateObject private var audioService = AudioService()
-    @StateObject private var recorder = AudioService()
     
     var stylePrompt: String {
         selectedStyle == .custom ? customPrompt : selectedStyle.prompt
@@ -113,9 +110,7 @@ struct AIRefineView: View {
                                 .disabled(audioService.isPlaying)
                                 
                                 Button {
-                                    if audioService.saveToDocuments(data: audio, filename: "mimo_\(Date().timeIntervalSince1970).wav") != nil {
-                                        showSuccess = true
-                                    }
+                                    audioService.saveToDocuments(data: audio, filename: "mimo_\(Date().timeIntervalSince1970).wav")
                                 } label: {
                                     Label("保存", systemImage: "square.and.arrow.down")
                                         .font(.title3)
@@ -128,9 +123,6 @@ struct AIRefineView: View {
                     }
                 }
                 .padding()
-            }
-            .onTapGesture {
-                hideKeyboard()
             }
             .onTapGesture { hideKeyboard() }
             .navigationTitle("AI 精修")
