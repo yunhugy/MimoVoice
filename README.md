@@ -1,37 +1,43 @@
-# MiMoVoice
+# MiMoVoice 🎙️
 
-基于小米 MiMo TTS API 的 AI 变声 iOS App。
+基于 Xiaomi MiMo TTS 的 iOS 变声 App
 
-## ✨ 功能
+## 功能
 
-- **AI 精修** - 输入文字，选择音色风格，MiMo TTS 合成高质量语音
-- **声音克隆** - 上传/录制声音样本，克隆任意音色说话
-- **实时变声** - 本地 DSP 处理，零延迟变声（花栗鼠/低沉/机器人/外星人等）
-- **声音设计** - 用文字描述自定义音色
-
-## 🚀 安装
-
-1. 从 [Actions](../../actions) 下载最新 IPA
-2. 使用 TrollStore 安装
-
-## ⚙️ 配置
-
-1. 在 [MiMo Token Plan](https://platform.xiaomimimo.com/token-plan) 订阅套餐
-2. 在 [订阅管理](https://platform.xiaomimimo.com/console/plan-manage) 获取 API Key（`tp-xxxxx`）
-3. 打开 App → 设置 → 填入 API Key → 选择节点区域
-
-## 📱 系统要求
-
-- iOS 17.0+
-- TrollStore（免签名安装）
-
-## 🎤 TTS 模型
-
-| 模型 | 功能 | 费用 |
+| 功能 | 说明 | 费用 |
 |------|------|------|
-| mimo-v2.5-tts | 内置音色语音合成 | 限时免费 |
-| mimo-v2.5-tts-voiceclone | 声音克隆 | 限时免费 |
-| mimo-v2.5-tts-voicedesign | 声音设计 | 限时免费 |
+| ✨ AI 精修变声 | 输入文字 → 选择音色 → AI 语音合成 | 限时免费 |
+| 🧬 声音克隆 | 上传/录制样本 → 用克隆音色说任意文字 | 限时免费 |
+| 🎙️ 实时变声 | 麦克风实时 DSP 处理（花栗鼠/低沉/机器人等） | 纯本地 |
+| 📝 录音转文字 | Whisper ASR 识别 | 需 OpenAI Key |
+
+## 使用前准备
+
+1. 前往 [MiMo 开放平台](https://platform.xiaomimimo.com/console/plan-manage) 获取 **Token Plan API Key**（`tp-xxxxx` 格式）
+2. （可选）如需录音转文字，准备 [OpenAI API Key](https://platform.openai.com/api-keys)
+
+## 快速开始
+
+```bash
+# 安装 XcodeGen
+brew install xcodegen
+
+# 生成 Xcode 项目
+xcodegen generate
+
+# 编译运行
+open MimoVoice.xcodeproj
+```
+
+## GitHub Actions 自动构建
+
+Push 到 main 分支后自动编译 IPA，下载链接在 Actions 页面。
+
+## 技术栈
+
+- SwiftUI + AVFoundation
+- MiMo-V2.5-TTS API (OpenAI 兼容)
+- 实时变声：AVAudioEngine + TimePitch
 
 ## License
 
