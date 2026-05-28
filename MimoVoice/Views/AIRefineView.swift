@@ -112,7 +112,7 @@ struct AIRefineView: View {
                                 .disabled(audioService.isPlaying)
                                 
                                 Button {
-                                    if let url = audioService.saveToDocuments(data: audio, filename: "mimo_\(Date().timeIntervalSince1970).wav") {
+                                    if audioService.saveToDocuments(data: audio, filename: "mimo_\(Date().timeIntervalSince1970).wav") != nil {
                                         showSuccess = true
                                     }
                                 } label: {

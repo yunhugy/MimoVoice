@@ -30,6 +30,7 @@ jobs:
 
       - name: Build iOS App
         run: |
+          set -o pipefail
           xcodebuild \
             -project MimoVoice.xcodeproj \
             -scheme MiMoVoice \
@@ -43,10 +44,15 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE="" \
-            2>&1 | tail -30
+            2>&1 | xcpretty || true
           
-          echo "=== Build Products ==="
-          find build -name "*.app" -type d 2>/dev/null
+          # Check if build succeeded
+          if [ ! -d "build/Build/Products/Release-iphoneos/MiMoVoice.app" ]; then
+            echo "ERROR: Build failed - .app not found"
+            exit 1
+          fi
+          echo "✅ Build succeeded"
+          ls -la build/Build/Products/Release-iphoneos/MiMoVoice.app
 
       - name: Create IPA
         run: |
