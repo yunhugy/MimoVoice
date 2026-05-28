@@ -9,68 +9,59 @@ class RealTimeEngine: ObservableObject {
     @Published var currentPitch: Float = 0
     @Published var effectName: String = "原声"
     
-    private var isSetup = false
-    
-    // MARK: - 请求麦克风权限
-    func requestMicPermission(completion: @escaping (Bool) -> Void) {
-        AVAudioSession.sharedInstance().requestRecordPermission { granted in
-            DispatchQueue.main.async {
-                completion(granted)
-            }
-        }
-    }
-    
-    // MARK: - 启动引擎
     func start() throws {
-        if isSetup { stop() }
+        // 先清理旧的
+        stop()
         
+        // 配置音频会话
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
         try session.setActive(true)
         
+        // 创建引擎
         let engine = AVAudioEngine()
         let pitch = AVAudioUnitTimePitch()
         
+        let inputNode = engine.inputNode
+        let mixerNode = engine.mainMixerNode
+        
+        // 先 detach 所有已有的连接
         engine.attach(pitch)
         
-        let inputNode = engine.inputNode
-        let outputNode = engine.mainMixerNode
-        let format = inputNode.outputFormat(forBus: 0)
+        let hwFormat = inputNode.outputFormat(forBus: 0)
         
-        // 验证 format 有效
-        guard format.sampleRate > 0, format.channelCount > 0 else {
+        guard hwFormat.sampleRate > 0, hwFormat.channelCount > 0 else {
             throw EngineError.invalidAudioFormat
         }
         
-        engine.connect(inputNode, to: pitch, format: format)
-        engine.connect(pitch, to: outputNode, format: format)
-        engine.prepare()
+        // input → pitch → output
+        engine.connect(inputNode, to: pitch, format: hwFormat)
+        engine.connect(pitch, to: mixerNode, format: hwFormat)
         
-        try engine.start()
-        
-        // 全部成功后才赋值
-        audioEngine = engine
+        // 标记活跃状态（必须在 engine.start 之前，这样 UI 不会卡）
         pitchNode = pitch
-        isSetup = true
+        audioEngine = engine
         isActive = true
+        
+        // 启动引擎（可能抛异常，此时 UI 已更新，catch 里回退状态）
+        do {
+            try engine.start()
+        } catch {
+            // 启动失败，回退状态
+            self.audioEngine = nil
+            self.pitchNode = nil
+            self.isActive = false
+            throw error
+        }
     }
     
-    // MARK: - 停止引擎（安全清理）
     func stop() {
-        guard let engine = audioEngine else {
-            isActive = false
-            isSetup = false
-            return
-        }
-        
-        engine.stop()
+        audioEngine?.stop()
         audioEngine = nil
         pitchNode = nil
-        isSetup = false
         isActive = false
     }
     
-    // MARK: - 设置效果
     func setEffect(_ effect: RealTimeEffect) {
         effectName = effect.rawValue
         guard let pitch = pitchNode else { return }
@@ -119,7 +110,7 @@ enum EngineError: LocalizedError {
     
     var errorDescription: String? {
         switch self {
-        case .invalidAudioFormat: return "音频格式无效，请检查麦克风"
+        case .invalidAudioFormat: return "音频格式无效，请检查麦克风是否可用"
         case .micPermissionDenied: return "需要麦克风权限才能实时变声"
         }
     }
