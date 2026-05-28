@@ -38,34 +38,30 @@ jobs:
             -sdk iphoneos \
             -arch arm64 \
             -derivedDataPath build \
-            -allowProvisioningUpdates \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="-" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
             DEVELOPMENT_TEAM="" \
             PROVISIONING_PROFILE="" \
-            2>&1 | xcpretty || true
+            2>&1 | tail -50
           
-          # Check if build succeeded
-          if [ ! -d "build/Build/Products/Release-iphoneos/MiMoVoice.app" ]; then
-            echo "ERROR: Build failed - .app not found"
+          # Verify binary exists
+          APP_DIR="build/Build/Products/Release-iphoneos/MiMoVoice.app"
+          if [ ! -f "$APP_DIR/MiMoVoice" ]; then
+            echo "ERROR: Binary not found!"
+            ls -la "$APP_DIR/"
             exit 1
           fi
-          echo "✅ Build succeeded"
-          ls -la build/Build/Products/Release-iphoneos/MiMoVoice.app
+          echo "✅ Build succeeded - binary found:"
+          file "$APP_DIR/MiMoVoice"
+          ls -lh "$APP_DIR/MiMoVoice"
 
       - name: Create IPA
         run: |
-          APP_PATH=$(find build -name "*.app" -type d | head -1)
-          if [ -z "$APP_PATH" ]; then
-            echo "ERROR: .app not found!"
-            find build -type d | head -20
-            exit 1
-          fi
-          echo "Found app at: $APP_PATH"
+          APP_DIR="build/Build/Products/Release-iphoneos/MiMoVoice.app"
           mkdir -p Payload
-          cp -r "$APP_PATH" Payload/
-          zip -r MimoVoice.ipa Payload
+          cp -r "$APP_DIR" Payload/
+          zip -r -y MimoVoice.ipa Payload
           rm -rf Payload
           ls -lh MimoVoice.ipa
 
