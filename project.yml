@@ -1,7 +1,7 @@
 name: MiMoVoice
 bundleId: com.mimo.voice
 platforms: [iOS]
-deploymentTarget: "17.0"
+deploymentTarget: "16.0"
 settings:
   SWIFT_VERSION: "5.9"
   TARGETED_DEVICE_FAMILY: "1,2"
