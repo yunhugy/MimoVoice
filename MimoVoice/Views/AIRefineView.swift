@@ -129,6 +129,10 @@ struct AIRefineView: View {
                 }
                 .padding()
             }
+            .onTapGesture {
+                hideKeyboard()
+            }
+            .onTapGesture { hideKeyboard() }
             .navigationTitle("AI 精修")
         }
     }

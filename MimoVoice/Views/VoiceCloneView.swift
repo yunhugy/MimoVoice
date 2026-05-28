@@ -29,6 +29,7 @@ struct VoiceCloneView: View {
                 }
                 .padding()
             }
+            .onTapGesture { hideKeyboard() }
             .navigationTitle("声音克隆")
             .fileImporter(
                 isPresented: $showDocPicker,

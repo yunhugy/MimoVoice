@@ -117,6 +117,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .onTapGesture { hideKeyboard() }
             .navigationTitle("设置")
         }
     }
