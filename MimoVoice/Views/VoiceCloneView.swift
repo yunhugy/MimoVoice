@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import AVFoundation
 
 @available(iOS 16.0, *)
 struct VoiceCloneView: View {
@@ -12,6 +13,7 @@ struct VoiceCloneView: View {
     @State private var resultAudio: Data? = nil
     @State private var isLoading: Bool = false
     @State private var errorMessage: String? = nil
+    @State private var showError: Bool = false
     @State private var showDocPicker: Bool = false
     @State private var isRecording: Bool = false
     @State private var recordingURL: URL? = nil
@@ -37,6 +39,11 @@ struct VoiceCloneView: View {
                 allowsMultipleSelection: false
             ) { result in
                 handleFileImport(result: result)
+            }
+            .alert("错误", isPresented: $showError) {
+                Button("确定") {}
+            } message: {
+                Text(errorMessage ?? "")
             }
         }
     }
@@ -172,8 +179,21 @@ struct VoiceCloneView: View {
                 sampleFileName = url.lastPathComponent
             }
         } else {
-            try? audioService.startRecording()
-            isRecording = true
+            // 先请求权限
+            AudioService.requestMicPermission { granted in
+                if granted {
+                    do {
+                        try audioService.startRecording()
+                        isRecording = true
+                    } catch {
+                        errorMessage = "录音失败：\(error.localizedDescription)"
+                        showError = true
+                    }
+                } else {
+                    errorMessage = "需要麦克风权限，请在「设置 → MiMoVoice」中开启"
+                    showError = true
+                }
+            }
         }
     }
     

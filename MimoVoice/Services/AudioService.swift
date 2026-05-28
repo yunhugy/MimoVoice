@@ -15,6 +15,15 @@ class AudioService: NSObject, ObservableObject, AVAudioPlayerDelegate {
         super.init()
     }
     
+    // MARK: - 权限
+    static func requestMicPermission(completion: @escaping (Bool) -> Void) {
+        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            DispatchQueue.main.async {
+                completion(granted)
+            }
+        }
+    }
+    
     // MARK: - Recording
     func startRecording() throws {
         let session = AVAudioSession.sharedInstance()
@@ -29,8 +38,9 @@ class AudioService: NSObject, ObservableObject, AVAudioPlayerDelegate {
             AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
         ]
         
-        audioRecorder = try AVAudioRecorder(url: filename, settings: settings)
-        audioRecorder?.record()
+        let recorder = try AVAudioRecorder(url: filename, settings: settings)
+        recorder.record()
+        audioRecorder = recorder
         
         DispatchQueue.main.async {
             self.isRecording = true
