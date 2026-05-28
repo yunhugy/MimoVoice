@@ -1,6 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+@available(iOS 16.0, *)
 struct VoiceCloneView: View {
     @StateObject private var audioService = AudioService()
     

@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct LiveVoiceView: View {
     @StateObject private var engine = RealTimeEngine()
     
@@ -23,7 +24,6 @@ struct LiveVoiceView: View {
                             Circle()
                                 .stroke(Color.green, lineWidth: 4)
                                 .frame(width: 120, height: 120)
-                                .symbolEffect(.pulse, value: engine.isActive)
                         }
                         
                         Image(systemName: engine.isActive ? "mic.fill" : "mic.slash.fill")
@@ -70,7 +70,7 @@ struct LiveVoiceView: View {
                     VStack(alignment: .leading) {
                         Text("音调: \(Int(customPitch))").font(.subheadline)
                         Slider(value: $customPitch, in: -2400...2400, step: 100)
-                            .onChange(of: customPitch) { _, newValue in
+                            .onChange(of: customPitch) { newValue in
                                 engine.setPitch(newValue)
                             }
                     }
@@ -78,7 +78,7 @@ struct LiveVoiceView: View {
                     VStack(alignment: .leading) {
                         Text("语速: \(String(format: "%.1f", customRate))x").font(.subheadline)
                         Slider(value: $customRate, in: 0.5...2.0, step: 0.1)
-                            .onChange(of: customRate) { _, newValue in
+                            .onChange(of: customRate) { newValue in
                                 engine.setRate(newValue)
                             }
                     }

@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct SettingsView: View {
     @AppStorage("apiKey") private var apiKey = ""
     @AppStorage("baseURL") private var baseURL = "https://token-plan-sgp.xiaomimimo.com/v1"

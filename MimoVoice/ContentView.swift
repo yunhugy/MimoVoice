@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct ContentView: View {
     @AppStorage("apiKey") private var apiKey = ""
     @State private var selectedTab = 0

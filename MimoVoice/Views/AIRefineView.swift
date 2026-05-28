@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 16.0, *)
 struct AIRefineView: View {
     @State private var inputText = ""
     @State private var selectedStyle: AIVoiceStyle = .sweet
