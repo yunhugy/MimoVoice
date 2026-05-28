@@ -1,0 +1,24 @@
+name: MiMoVoice
+bundleId: com.mimo.voice
+platforms: [iOS]
+deploymentTarget: "17.0"
+settings:
+  SWIFT_VERSION: "5.9"
+  TARGETED_DEVICE_FAMILY: "1,2"
+  INFOPLIST_FILE: MimoVoice/Info.plist
+  PRODUCT_BUNDLE_IDENTIFIER: com.mimo.voice
+  CODE_SIGNING_ALLOWED: NO
+  DEVELOPMENT_TEAM: ""
+targets:
+  MiMoVoice:
+    type: application
+    platform: iOS
+    sources:
+      - MimoVoice
+    settings:
+      base:
+        INFOPLIST_FILE: MimoVoice/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.mimo.voice
+        CODE_SIGNING_ALLOWED: NO
+    info:
+      path: MimoVoice/Info.plist
