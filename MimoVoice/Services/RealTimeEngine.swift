@@ -1,9 +1,11 @@
 import AVFoundation
+import Combine
 
 class RealTimeEngine: ObservableObject {
     
     private var audioEngine: AVAudioEngine?
     private var pitchNode: AVAudioUnitTimePitch?
+    private var cancellable: AnyCancellable?
     
     @Published var isActive = false
     @Published var currentPitch: Float = 0
@@ -12,28 +14,59 @@ class RealTimeEngine: ObservableObject {
     func start() throws {
         stop()
         
+        // 1. 先配 Session（必须在 engine 之前）
         let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
         try session.setActive(true)
         
+        // 2. 监听中断
+        cancellable = NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] notification in
+                guard let self = self else { return }
+                if let type = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+                   AVAudioSession.InterruptionType(rawValue: type) == .ended {
+                    // 中断结束，重启引擎
+                    do {
+                        try self.start()
+                        self.setEffect(self.effectName.isEmpty ? .none : .none)
+                    } catch {
+                        print("Engine restart after interruption failed: \(error)")
+                    }
+                } else {
+                    self.stop()
+                }
+            }
+        
+        // 3. 创建引擎
         let engine = AVAudioEngine()
-        let inputNode = engine.inputNode
-        let outputNode = engine.mainMixerNode
         let pitch = AVAudioUnitTimePitch()
         
         engine.attach(pitch)
         
-        // 用输出格式统一（避免 inputNode 格式在权限刚授予时无效）
-        let format = outputNode.inputFormat(forBus: 0)
-        guard format.sampleRate > 0 else {
+        // 4. 用 inputNode 的 format 驱动整条链（关键！）
+        let format = engine.inputNode.outputFormat(forBus: 0)
+        guard format.sampleRate > 0, format.channelCount > 0 else {
             throw EngineError.invalidAudioFormat
         }
         
-        engine.connect(inputNode, to: pitch, format: format)
-        engine.connect(pitch, to: outputNode, format: format)
+        // 5. input → pitch → mixer（用同一个 format）
+        engine.connect(engine.inputNode, to: pitch, format: format)
+        engine.connect(pitch, to: engine.mainMixerNode, format: format)
+        
+        // 6. 关键：mixer → outputNode
+        let outputFormat = engine.outputNode.inputFormat(forBus: 0)
+        engine.connect(engine.mainMixerNode, to: engine.outputNode, format: outputFormat)
+        
         engine.prepare()
         
-        try engine.start()
+        // 7. 启动
+        do {
+            try engine.start()
+        } catch {
+            print("AVAudioEngine.start() failed: \(error.localizedDescription)")
+            throw error
+        }
         
         audioEngine = engine
         pitchNode = pitch
@@ -41,6 +74,8 @@ class RealTimeEngine: ObservableObject {
     }
     
     func stop() {
+        cancellable?.cancel()
+        cancellable = nil
         audioEngine?.stop()
         audioEngine = nil
         pitchNode = nil
