@@ -33,9 +33,7 @@ struct VoiceCloneView: View {
                                     .cornerRadius(12)
                             }
                             
-                            Button {
-                                Task { await toggleRecording() }
-                            } label: {
+                            Button(action: startStopRecording) {
                                 Label(isRecording ? "停止录音" : "现场录音", systemImage: isRecording ? "stop.circle.fill" : "mic.circle.fill")
                                     .frame(maxWidth: .infinity)
                                     .padding()
@@ -139,6 +137,19 @@ struct VoiceCloneView: View {
         if let data = try? Data(contentsOf: url) {
             sampleData = data
             sampleFileName = url.lastPathComponent
+        }
+    }
+    
+    private func startStopRecording() {
+        if isRecording {
+            recordingURL = audioService.stopRecording()
+            isRecording = false
+            if let url = recordingURL {
+                loadAudio(from: url)
+            }
+        } else {
+            try? audioService.startRecording()
+            isRecording = true
         }
     }
     

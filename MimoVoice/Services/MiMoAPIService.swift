@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 class MiMoAPIService: ObservableObject {
     @AppStorage("apiKey") private var storedApiKey = ""

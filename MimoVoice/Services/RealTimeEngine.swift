@@ -17,9 +17,8 @@ class RealTimeEngine: ObservableObject {
     private var reverbNode = AVAudioUnitReverb()
     private var delayNode = AVAudioUnitDelay()
     
-    override init() {
+    init() {
         mixerNode = audioEngine.mainMixerNode
-        super.init()
     }
     
     func setup() throws {
