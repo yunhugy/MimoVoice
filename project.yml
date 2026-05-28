@@ -5,7 +5,6 @@ deploymentTarget: "16.0"
 settings:
   SWIFT_VERSION: "5.9"
   TARGETED_DEVICE_FAMILY: "1,2"
-  INFOPLIST_FILE: MimoVoice/Info.plist
   PRODUCT_BUNDLE_IDENTIFIER: com.mimo.voice
   CODE_SIGNING_ALLOWED: NO
   DEVELOPMENT_TEAM: ""
@@ -18,7 +17,6 @@ targets:
       - MimoVoice
     settings:
       base:
-        INFOPLIST_FILE: MimoVoice/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.mimo.voice
         CODE_SIGNING_ALLOWED: NO
         IPHONEOS_DEPLOYMENT_TARGET: "16.0"
