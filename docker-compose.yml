@@ -1,0 +1,11 @@
+services:
+  picturebook:
+    build: .
+    container_name: picturebook-web
+    ports:
+      - "5057:5057"
+    env_file:
+      - .env
+    volumes:
+      - ./webapp/data/books:/app/webapp/data/books
+    restart: unless-stopped

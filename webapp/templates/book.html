@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ book.title }} · 绘本</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap book">
+  <a class="back" href="/">← 返回</a>
+  <h1>{{ book.title }}</h1>
+  <p class="meta">{{ book.created_at }} · 适合{{ book.age }} · {{ book.pages|length }}段 · {{ book.image_count }}张插图</p>
+  {% for p in book.pages %}
+  <figure class="page">
+    {% if p.image %}
+    <img src="/books/{{ book.id }}/images/{{ p.image }}" alt="插图" loading="lazy">
+    {% endif %}
+    <figcaption>{{ p.text }}</figcaption>
+  </figure>
+  {% endfor %}
+  <a class="back" href="/">← 返回</a>
+</div>
+</body>
+</html>

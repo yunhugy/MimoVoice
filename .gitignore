@@ -1,0 +1,16 @@
+# 密钥与本地配置
+.env
+.venv/
+venv/
+
+# 生成产物（图片与绘本存本地，不进仓库）
+webapp/data/books/*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 系统文件
+.DS_Store
+Thumbs.db

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>绘本生成器 · 自用版</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>绘本生成器</h1>
+    <p class="sub">输入一个主题，AI 写故事 + 画插图，生成一本儿童绘本</p>
+    <div id="cfg" class="cfg"></div>
+  </header>
+
+  <section class="card">
+    <label>故事主题</label>
+    <input id="theme" type="text" placeholder="例如：一只勇敢的小兔子" maxlength="60">
+    <div class="row">
+      <div>
+        <label>目标年龄</label>
+        <input id="age" type="text" value="5-8岁" maxlength="10">
+      </div>
+      <div>
+        <label>故事段落</label>
+        <select id="paragraphs">
+          <option value="6">6 段（短）</option>
+          <option value="9">9 段</option>
+          <option value="12" selected>12 段（标准）</option>
+        </select>
+      </div>
+      <div>
+        <label>配图密度</label>
+        <select id="image_every">
+          <option value="1">每段都配</option>
+          <option value="2">每 2 段配 1 张</option>
+          <option value="3" selected>每 3 段配 1 张</option>
+          <option value="4">每 4 段配 1 张</option>
+        </select>
+      </div>
+    </div>
+    <button id="go" class="primary">开始生成</button>
+    <p class="hint">一本约需几分钟：写故事约 1 分钟，每张插图约 30–60 秒</p>
+  </section>
+
+  <section id="job" class="card hidden">
+    <h2 id="job-title"></h2>
+    <div class="bar"><div id="bar-fill"></div></div>
+    <p id="job-detail" class="detail"></p>
+  </section>
+
+  <section class="card">
+    <h2>历史绘本</h2>
+    <div id="history" class="history"><p class="muted">加载中…</p></div>
+  </section>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+
+fetch('/api/config').then(r => r.json()).then(c => {
+  $('cfg').innerHTML =
+    `<span class="badge ${c.openai ? 'ok' : 'bad'}">OpenAI ${c.openai ? '已配置' : '未配置'}</span>` +
+    `<span class="badge ${c.fal ? 'ok' : 'bad'}">Fal.ai ${c.fal ? '已配置' : '未配置'}</span>` +
+    `<span class="badge">模型 ${c.model}</span>`;
+  if (!c.openai || !c.fal) $('go').disabled = true;
+});
+
+function loadHistory() {
+  fetch('/api/books').then(r => r.json()).then(list => {
+    $('history').innerHTML = list.length ? list.map(b =>
+      `<a class="hist" href="/book/${b.id}">
+         <span class="hist-title">${esc(b.title)}</span>
+         <span class="muted">${b.created_at} · ${b.pages}段 · ${b.images}图</span>
+       </a>`).join('')
+      : '<p class="muted">还没有生成过绘本</p>';
+  });
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+loadHistory();
+
+$('go').onclick = () => {
+  const theme = $('theme').value.trim();
+  if (!theme) { alert('请填写故事主题'); return; }
+  $('go').disabled = true;
+  fetch('/api/jobs', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      theme,
+      age: $('age').value.trim() || '5-8岁',
+      paragraphs: parseInt($('paragraphs').value),
+      image_every: parseInt($('image_every').value),
+    })
+  }).then(r => r.json()).then(d => {
+    if (d.error) { alert(d.error); $('go').disabled = false; return; }
+    poll(d.job_id);
+  });
+};
+
+function poll(id) {
+  $('job').classList.remove('hidden');
+  $('job-title').textContent = '正在生成…';
+  const timer = setInterval(() => {
+    fetch('/api/jobs/' + id).then(r => r.json()).then(j => {
+      $('bar-fill').style.width = (j.progress || 0) + '%';
+      $('job-detail').textContent = (j.phase || '') + '：' + (j.detail || '');
+      if (j.state === 'done') {
+        clearInterval(timer);
+        location.href = '/book/' + id;
+      } else if (j.state === 'error') {
+        clearInterval(timer);
+        $('job-detail').textContent = '出错：' + j.detail;
+        $('go').disabled = false;
+      }
+    });
+  }, 3000);
+};
+</script>
+</body>
+</html>
